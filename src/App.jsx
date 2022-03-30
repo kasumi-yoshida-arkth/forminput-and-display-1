@@ -4,11 +4,13 @@ import { Box } from '@mui/system'
 import './index.css'
 
 const App = () => {
+  const [cardId, setCardId] = useState(1)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [category, setCategory] = useState('')
   const [cards, setCards] = useState([])
   const [cardNum, setCardNum] = useState(0)
+  const [deleteCardId, setDeleteCardId] = useState(0)
 
   const inputAllForm = title === '' || body === '' || category === ''
 
@@ -18,27 +20,42 @@ const App = () => {
     setCardNum(cardNum + 1)
   }
 
+  const deleteCard = (id, e) => {
+    e.preventDefault()
+
+    setDeleteCardId(id)
+    setCardNum(cardNum - 1)
+  }
+
   useEffect(() => {
-    const addCard = async () => {
-      if (title !== '') {
-        const newCard = await { cardTitle: title, cardBody: body, cardCategory: category }
-        if (cards.length) {
-          setCards([...cards, newCard]);
-        } else {
-          setCards([newCard]);
+    const changeCard = async () => {
+      if (cardNum > cards.length) {
+        if (title !== '') {
+          const newCard = await { cardId: cardId, cardTitle: title, cardBody: body, cardCategory: category }
+          if (cards.length) {
+            setCards([...cards, newCard]);
+          } else {
+            setCards([newCard]);
+          }
+          setCardId(cardId + 1)
+          setTitle('')
+          setBody('')
+          setCategory('')
         }
-        setTitle('')
-        setBody('')
-        setCategory('')
+      } else if (cardNum < cards.length) {
+        const newArray = cards.filter((card) => {
+          return card.cardId !== deleteCardId;
+        })
+        setCards(newArray);
       }
     }
-    addCard()
+    changeCard()
   }, [cardNum])
 
   return (
     <>
       <Box sx={{ borderBottom: '1px solid lightgray', paddingBottom: '50px' }}>
-        <h1>Post Action List</h1>
+        <h1>Post Action List</h1> カード枚数：{cardNum}
         <form>
           <TextField className='input-form' id='title' label='Title' variant='outlined' value={title} onChange={e => setTitle(e.target.value)} />
           <TextField className='input-form' id='body' label='Body' multiline rows={4} variant='outlined' value={body} onChange={e => setBody(e.target.value)} />
@@ -49,8 +66,8 @@ const App = () => {
 
       <Box>
         <h1>Action List</h1>
-        {cards.map((card, i) => (
-          <Card sx={{ maxWidth: 500, margin: 2 }} key={i}>
+        {cards.map((card) => (
+          <Card sx={{ maxWidth: 500, margin: 2 }} key={card.cardId}>
             <CardContent>
               <Typography sx={{ fontSize: 20, borderBottom: '1px solid lightgray' }}>
                 {card.cardTitle}
@@ -63,7 +80,7 @@ const App = () => {
               </Typography>
             </CardContent>
             <CardActions>
-              <Button color='warning' variant='outlined'>Delete</Button>
+              <Button color='warning' variant='outlined' onClick={(e) => deleteCard(card.cardId, e)}>Delete</Button>
             </CardActions>
           </Card>
         ))}
