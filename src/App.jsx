@@ -4,9 +4,11 @@ import InputCard from './components/InputCard'
 import LineCardsUp from './components/LineCardsUp'
 
 const App = () => {
-  const [inputCard, setInputCard] = useState({ id: 1, title: '', body: '', category: '' })
-  const [cards, setCards] = useState([])
-  const [cardNum, setCardNum] = useState(0)
+  const outputCards = JSON.parse(sessionStorage.getItem('dataCards'))
+  const initCardId = outputCards ? outputCards[outputCards.length - 1].id + 1 : 1;
+  const [inputCard, setInputCard] = useState({ id: initCardId, title: '', body: '', category: '' })
+  const [cards, setCards] = useState(outputCards ? outputCards : [])
+  const [cardNum, setCardNum] = useState(outputCards ? outputCards.length : 0)
   const [deleteCardId, setDeleteCardId] = useState(0)
 
   useEffect(() => {
@@ -14,12 +16,14 @@ const App = () => {
       if (cardNum > cards.length) {
         const newCards = await cards.length ? [...cards, inputCard] : [inputCard]
         setCards(newCards)
+        sessionStorage.setItem('dataCards', JSON.stringify(newCards))
         setInputCard({ id: inputCard.id + 1, title: '', body: '', category: '' })
       } else if (cardNum < cards.length) {
         const newCards = cards.filter((card) => {
           return card.id !== deleteCardId;
         })
         setCards(newCards);
+        sessionStorage.setItem('dataCards', JSON.stringify(newCards))
       }
     }
     changeCard()
